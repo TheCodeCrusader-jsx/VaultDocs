@@ -2,75 +2,84 @@ const Document = require('../models/Document');
 const path = require('path');
 const fs = require('fs');
 
-// POST: Upload document
+// ======================
+// POST: Upload Document
+// ======================
 exports.uploadDocument = async (req, res) => {
   console.log('--- UPLOAD DOCUMENT START ---');
+
   try {
-    console.log('Request body:', req.body);
-    console.log('Request file (in memory):', req.file);
     const { name, email, docType } = req.body;
 
     if (!req.file) {
-      console.log('No file uploaded, sending 400.');
+      console.log('❌ No file uploaded');
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    // Manually handle file saving from memory
+    // File naming and path
     const filename = `${Date.now()}-${req.file.originalname}`;
     const uploadsDir = path.join(__dirname, '../uploads');
     const filePath = path.join(uploadsDir, filename);
 
-    console.log(`Ensuring directory exists: ${uploadsDir}`);
+    // Ensure uploads folder exists
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
 
-    console.log(`Writing file to: ${filePath}`);
+    // Write buffer to file system
     fs.writeFileSync(filePath, req.file.buffer);
-    console.log('File written to disk successfully.');
+    console.log('✅ File saved to:', filePath);
 
-    console.log('Creating new document...');
+    // Create DB entry
     const document = new Document({
       name,
       email,
       docType,
-      filePath: filename // Save just the filename
+      filePath: filename // just filename (not full path)
     });
 
-    console.log('Document object created:', document);
-    console.log('Attempting to save document...');
     await document.save();
-    console.log('Document saved successfully.');
+    console.log('✅ Document saved to DB');
 
-    res.status(201).json({ message: 'Document uploaded successfully', document });
+    res.status(201).json({
+      message: 'Document uploaded successfully',
+      document
+    });
+
     console.log('--- UPLOAD DOCUMENT END ---');
   } catch (error) {
-    console.error('!!! ERROR IN UPLOAD DOCUMENT !!!', error);
+    console.error('❌ Upload Error:', error);
     res.status(500).json({ message: 'Upload failed', error: error.message });
   }
 };
 
-// GET: All documents
+// ======================
+// GET: All Documents
+// ======================
 exports.getDocuments = async (req, res) => {
   try {
-    const { documentType } = req.query;
-    const filter = documentType ? { documentType } : {};
+    const { docType } = req.query;
+    const filter = docType ? { docType } : {};
 
     const documents = await Document.find(filter).sort({ createdAt: -1 });
-    res.json(documents);
+    res.status(200).json(documents);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching documents', error: error.message });
   }
 };
 
-// PUT: Update verified status
+// ============================
+// PUT: Update Verification Status
+// ============================
 exports.updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { verified } = req.body;
 
     const document = await Document.findByIdAndUpdate(id, { verified }, { new: true });
-    if (!document) return res.status(404).json({ message: 'Document not found' });
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
 
     res.json({ message: 'Status updated', document });
   } catch (error) {
@@ -78,19 +87,24 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
-// GET: Download document
+// ======================
+// GET: Download Document
+// ======================
 exports.downloadDocument = async (req, res) => {
   try {
     const { id } = req.params;
-    const document = await Document.findById(id);
-    if (!document) return res.status(404).json({ message: 'Document not found' });
 
-    const filePath = path.join(__dirname, '../uploads', document.filePath);
-    if (!fs.existsSync(filePath)) {
+    const document = await Document.findById(id);
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found in DB' });
+    }
+
+    const fullPath = path.join(__dirname, '../uploads', document.filePath);
+    if (!fs.existsSync(fullPath)) {
       return res.status(404).json({ message: 'File not found on server' });
     }
 
-    res.download(filePath);
+    res.download(fullPath);
   } catch (error) {
     res.status(500).json({ message: 'Download failed', error: error.message });
   }

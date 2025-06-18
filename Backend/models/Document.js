@@ -29,7 +29,7 @@ const documentSchema = new mongoose.Schema({
   docType: {
     type: String,
     required: true,
-    enum: ['aadhar', 'pan', 'passport', 'license', 'other'],
+    enum: ['aadhar', 'pan', 'passport', 'license', 'resume', 'voterid', 'marksheet', 'other'],
     lowercase: true
   },
   filePath: {
