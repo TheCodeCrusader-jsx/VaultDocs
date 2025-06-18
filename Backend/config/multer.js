@@ -1,29 +1,27 @@
-// config/multer.js
 const multer = require('multer');
-const path = require('path');
+const path   = require('path');
+const fs     = require('fs');
 
-// Storage engine
+const uploadDir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
+  destination: (_, __, cb) => cb(null, uploadDir),
+  filename:   (_, file, cb) => {
     const timestamp = Date.now();
-    const ext = path.extname(file.originalname);
     cb(null, `${timestamp}-${file.originalname}`);
   }
 });
 
-// File filter for PDFs only
-function fileFilter(req, file, cb) {
+const fileFilter = (_, file, cb) => {
   const isPDF = file.mimetype === 'application/pdf';
-  cb(null, isPDF);
-}
+  cb(isPDF ? null : new Error('Only PDF files are allowed'), isPDF);
+};
 
-const upload = multer({
+module.exports = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }      // 10 MB
 });
-
-module.exports = upload;

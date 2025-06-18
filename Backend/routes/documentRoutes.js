@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs'); // ✅ Don't forget this
 const {
   uploadDocument,
   getDocuments,
@@ -10,7 +11,7 @@ const {
 
 const router = express.Router();
 
-// Multer config
+// ✅ Multer config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(__dirname, '../../uploads');
@@ -22,7 +23,7 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const timestamp = Date.now();
     const ext = path.extname(file.originalname);
-    cb(null, `${timestamp}-${file.originalname}${ext}`);
+    cb(null, `${timestamp}-${file.originalname}`);
   }
 });
 
@@ -35,26 +36,23 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  }
+  storage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB
 });
 
-// Routes
-router.post('/documents', [
-  upload.single('document'),
-  uploadDocument
-]);
+// ✅ Routes
 
-router.get('/documents', getDocuments);
+// POST Upload document
+router.post('/upload', upload.single('file'), uploadDocument);
 
-router.put('/documents/:id', [
-  express.json(),
-  updateStatus
-]);
+// GET All documents
+router.get('/', getDocuments);
 
-router.get('/documents/:id/download', downloadDocument);
+// PUT Update document status
+router.put('/:id', updateStatus);
+
+// GET Download document by ID
+router.get('/:id/download', downloadDocument);
 
 module.exports = router;
