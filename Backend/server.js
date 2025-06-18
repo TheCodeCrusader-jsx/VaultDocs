@@ -23,6 +23,16 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // ✅ ROUTES - Corrected Base URL
 app.use('/api/documents', documentRoutes);
 
+app.get('/', (req, res) => {
+  res.send('Welcome to the VaultDocs API!');
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled Error:', err);
+  res.status(500).json({ message: 'An unexpected error occurred', error: err.message });
+});
+
 // Start server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
