@@ -74,9 +74,14 @@ exports.getDocuments = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { verified } = req.body;
+    const { status } = req.body; // Expects 'status', not 'verified'
 
-    const document = await Document.findByIdAndUpdate(id, { verified }, { new: true });
+    // Validate status
+    if (!['Pending', 'Verified', 'Rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status value' });
+    }
+
+    const document = await Document.findByIdAndUpdate(id, { status }, { new: true });
     if (!document) {
       return res.status(404).json({ message: 'Document not found' });
     }
