@@ -18,7 +18,7 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
-app.use('/api', documentRoutes);
+app.use('/api', require('./routes/documentRoutes'));
 
 // Start Server
 const PORT = process.env.PORT ;
