@@ -44,26 +44,26 @@ const UploadForm = () => {
     data.append('document', formData.file);
 
     try {
-      const response = await fetch('http://localhost:5000/api/documents/upload', {
+      const response = await fetch('/api/documents/upload', {
         method: 'POST',
         body: data,
       });
 
       if (response.ok) {
-        setMessage('Document uploaded successfully!');
+        setMessage('✅ Document uploaded successfully!');
         setFormData({
           name: '',
           email: '',
-          documentType: 'Resume',
+          documentType: 'resume',
           file: null,
         });
         e.target.reset();
       } else {
         const errorData = await response.json();
-        setMessage(`Upload failed: ${errorData.message}`);
+        setMessage(`❌ Upload failed: ${errorData.message}`);
       }
     } catch (error) {
-      setMessage('An error occurred during upload.');
+      setMessage('⚠️ An error occurred during upload.');
       console.error('Upload error:', error);
     } finally {
       setIsSubmitting(false);
@@ -71,41 +71,41 @@ const UploadForm = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Upload Document</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-gray-700 font-bold mb-2">Name</label>
+    <div className="max-w-lg mx-auto mt-10 px-6 py-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md">
+      <h2 className="text-3xl font-semibold text-center text-gray-800 dark:text-white mb-6">📤 Upload Document</h2>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">👤 Name</label>
           <input
             type="text"
             id="name"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500"
             required
           />
         </div>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-gray-700 font-bold mb-2">Email</label>
+        <div>
+          <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">📧 Email</label>
           <input
             type="email"
             id="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500"
             required
           />
         </div>
-        <div className="mb-4">
-          <label htmlFor="documentType" className="block text-gray-700 font-bold mb-2">Document Type</label>
+        <div>
+          <label htmlFor="documentType" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">📂 Document Type</label>
           <select
             id="documentType"
             name="documentType"
             value={formData.documentType}
             onChange={handleChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="resume">Resume</option>
             <option value="aadhar">Aadhar Card</option>
@@ -114,32 +114,32 @@ const UploadForm = () => {
             <option value="license">Driving License</option>
             <option value="voterid">Voter ID</option>
             <option value="marksheet">Marksheet</option>
-            <option value="other">Other (Bank Details, Offer Letter, etc.)</option>
+            <option value="other">Other</option>
           </select>
         </div>
-        <div className="mb-6">
-          <label htmlFor="file" className="block text-gray-700 font-bold mb-2">File Upload (PDF only)</label>
+        <div>
+          <label htmlFor="file" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">📎 Upload File (PDF only)</label>
           <input
             type="file"
             id="file"
             name="file"
-            onChange={handleFileChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             accept=".pdf"
+            onChange={handleFileChange}
+            className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500"
             required
           />
         </div>
-        <div className="flex items-center justify-between">
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Uploading...' : 'Submit'}
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Uploading...' : 'Submit'}
+        </button>
       </form>
-      {message && <p className="mt-4 text-center text-sm text-gray-600">{message}</p>}
+      {message && (
+        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">{message}</p>
+      )}
     </div>
   );
 };

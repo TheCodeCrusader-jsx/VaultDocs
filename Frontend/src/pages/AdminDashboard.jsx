@@ -12,7 +12,7 @@ const AdminDashboard = () => {
   const fetchDocuments = async () => {
     try {
       const query = new URLSearchParams(filters).toString();
-      const response = await fetch(`http://localhost:5000/api/documents?${query}`);
+      const response = await fetch(`/api/documents?${query}`);
       const data = await response.json();
       setDocuments(data);
     } catch (error) {
@@ -25,7 +25,7 @@ const AdminDashboard = () => {
   }, [filters]);
 
   const handleFilterChange = (name, value) => {
-    setFilters(prevFilters => ({
+    setFilters((prevFilters) => ({
       ...prevFilters,
       [name]: value,
     }));
@@ -33,7 +33,7 @@ const AdminDashboard = () => {
 
   const handleStatusChange = async (id, status) => {
     try {
-      await fetch(`http://localhost:5000/api/documents/${id}`, {
+      await fetch(`/api/documents/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -47,10 +47,18 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen p-4">
-      <h1 className="text-3xl font-bold text-center mb-8">Admin Dashboard</h1>
-      <FilterBar onFilterChange={handleFilterChange} />
-      <DocumentTable documents={documents} onStatusChange={handleStatusChange} />
+    <div className="bg-gray-50 dark:bg-gray-950 min-h-screen p-6">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-extrabold text-center text-gray-800 dark:text-white mb-10">
+          🛠️ Admin Dashboard
+        </h1>
+
+        <div className="mb-6">
+          <FilterBar onFilterChange={handleFilterChange} />
+        </div>
+
+        <DocumentTable documents={documents} onStatusChange={handleStatusChange} />
+      </div>
     </div>
   );
 };
