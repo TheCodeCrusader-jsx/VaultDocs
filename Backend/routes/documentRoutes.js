@@ -22,8 +22,8 @@ const upload = multer({
 
 // ✅ Routes
 
-// POST Upload document (field name must match Postman: 'document')
-router.post('/upload', upload.single('document'), uploadDocument);
+// POST Upload documents (field name must match frontend: 'documents')
+router.post('/upload', upload.array('documents', 10), uploadDocument); // Accept up to 10 files
 
 // GET All documents
 router.get('/', getDocuments);

@@ -5,7 +5,7 @@ const UploadForm = () => {
     name: '',
     email: '',
     documentType: 'resume',
-    file: null,
+    files: [], // Changed to handle multiple files
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,7 +22,7 @@ const UploadForm = () => {
   const handleFileChange = (e) => {
     setFormData({
       ...formData,
-      file: e.target.files[0],
+      files: [...e.target.files], // Store all selected files
     });
   };
 
@@ -31,8 +31,8 @@ const UploadForm = () => {
     setIsSubmitting(true);
     setMessage('');
 
-    if (!formData.file) {
-      setMessage('Please select a file to upload.');
+    if (formData.files.length === 0) {
+      setMessage('Please select at least one file to upload.');
       setIsSubmitting(false);
       return;
     }
@@ -41,7 +41,11 @@ const UploadForm = () => {
     data.append('name', formData.name);
     data.append('email', formData.email);
     data.append('docType', formData.documentType);
-    data.append('document', formData.file);
+
+    // Append all files to the FormData object
+    for (let i = 0; i < formData.files.length; i++) {
+      data.append('documents', formData.files[i]);
+    }
 
     try {
       const response = await fetch('/api/documents/upload', {
@@ -50,12 +54,12 @@ const UploadForm = () => {
       });
 
       if (response.ok) {
-        setMessage('✅ Document uploaded successfully!');
+        setMessage(`✅ ${formData.files.length} document(s) uploaded successfully!`);
         setFormData({
           name: '',
           email: '',
           documentType: 'resume',
-          file: null,
+          files: [],
         });
         e.target.reset();
       } else {
@@ -72,7 +76,7 @@ const UploadForm = () => {
 
   return (
     <div className="max-w-lg mx-auto mt-10 px-6 py-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md">
-      <h2 className="text-3xl font-semibold text-center text-gray-800 dark:text-white mb-6">📤 Upload Document</h2>
+      <h2 className="text-3xl font-semibold text-center text-gray-800 dark:text-white mb-6">📤 Admin: Upload Documents</h2>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">👤 Name</label>
@@ -92,7 +96,7 @@ const UploadForm = () => {
             type="email"
             id="email"
             name="email"
-            value={formData.email}
+            value={formData.name}
             onChange={handleChange}
             className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500"
             required
@@ -118,7 +122,7 @@ const UploadForm = () => {
           </select>
         </div>
         <div>
-          <label htmlFor="file" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">📎 Upload File (PDF only)</label>
+          <label htmlFor="file" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">📎 Upload Files (PDF only)</label>
           <input
             type="file"
             id="file"
@@ -127,6 +131,7 @@ const UploadForm = () => {
             onChange={handleFileChange}
             className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500"
             required
+            multiple // Allow multiple file selection
           />
         </div>
         <button

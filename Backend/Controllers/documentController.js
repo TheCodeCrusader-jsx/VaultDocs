@@ -2,51 +2,52 @@ const Document = require('../models/Document');
 const path = require('path');
 const fs = require('fs');
 
-// ======================
-// POST: Upload Document
-// ======================
+// =======================
+// POST: Upload Documents
+// =======================
 exports.uploadDocument = async (req, res) => {
-  console.log('--- UPLOAD DOCUMENT START ---');
+  console.log('--- UPLOAD DOCUMENTS START ---');
 
   try {
     const { name, email, docType } = req.body;
 
-    if (!req.file) {
-      console.log('❌ No file uploaded');
-      return res.status(400).json({ message: 'No file uploaded' });
+    if (!req.files || req.files.length === 0) {
+      console.log('❌ No files uploaded');
+      return res.status(400).json({ message: 'No files uploaded' });
     }
 
-    // File naming and path
-    const filename = `${Date.now()}-${req.file.originalname}`;
     const uploadsDir = path.join(__dirname, '../uploads');
-    const filePath = path.join(uploadsDir, filename);
-
-    // Ensure uploads folder exists
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
 
-    // Write buffer to file system
-    fs.writeFileSync(filePath, req.file.buffer);
-    console.log('✅ File saved to:', filePath);
+    const documentPromises = req.files.map(async (file) => {
+      const filename = `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`;
+      const filePath = path.join(uploadsDir, filename);
 
-    // Create DB entry
-    const document = new Document({
-      name,
-      email,
-      docType,
-      filePath: filename // just filename (not full path)
+      fs.writeFileSync(filePath, file.buffer);
+      console.log('✅ File saved to:', filePath);
+
+      const document = new Document({
+        name,
+        email,
+        docType,
+        filePath: filename,
+      });
+
+      await document.save();
+      console.log('✅ Document saved to DB:', document._id);
+      return document;
     });
 
-    await document.save();
-    console.log('✅ Document saved to DB');
+    const savedDocuments = await Promise.all(documentPromises);
 
     res.status(201).json({
-      message: 'Document uploaded successfully',
-      document
+      message: `${savedDocuments.length} document(s) uploaded successfully`,
+      documents: savedDocuments,
     });
 
-    console.log('--- UPLOAD DOCUMENT END ---');
+    console.log('--- UPLOAD DOCUMENTS END ---');
   } catch (error) {
     console.error('❌ Upload Error:', error);
     res.status(500).json({ message: 'Upload failed', error: error.message });
