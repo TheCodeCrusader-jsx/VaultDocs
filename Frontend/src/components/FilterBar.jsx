@@ -7,25 +7,21 @@ const FilterBar = ({ onFilterChange }) => {
   };
 
   return (
-    <div className="container mx-auto mt-6 px-4">
-      <div className="bg-white dark:bg-gray-900 shadow-md border border-gray-200 dark:border-gray-700 rounded-xl p-6">
-        <div className="flex flex-col md:flex-row md:items-end md:space-x-6 space-y-4 md:space-y-0">
+    <div className="max-w-6xl mx-auto px-4 mt-10">
+      <div className="rounded-3xl bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border border-gray-200 dark:border-gray-700 shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.4)] p-6 transition-all duration-300 hover:shadow-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Document Type Filter */}
-          <div className="w-full md:w-1/2">
-            <label
-              htmlFor="documentTypeFilter"
-              className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              📂 Filter by Document Type
+          {/* 📂 Document Type */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+              📂 Document Type
             </label>
             <select
-              id="documentTypeFilter"
               name="docType"
               onChange={handleFilter}
-              className="block w-full p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none transition-all duration-200 shadow-sm hover:border-blue-400"
             >
-              <option value="">All</option>
+              <option value="">All Documents</option>
               <option value="resume">Resume</option>
               <option value="aadhar">Aadhar Card</option>
               <option value="pan">PAN Card</option>
@@ -37,20 +33,16 @@ const FilterBar = ({ onFilterChange }) => {
             </select>
           </div>
 
-          {/* Date Filter */}
-          <div className="w-full md:w-1/2">
-            <label
-              htmlFor="dateFilter"
-              className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              📅 Filter by Submission Date
+          {/* 📅 Submission Date */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+              📅 Submission Date
             </label>
             <input
               type="date"
-              id="dateFilter"
               name="date"
               onChange={handleFilter}
-              className="block w-full p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none transition-all duration-200 shadow-sm hover:border-blue-400"
             />
           </div>
         </div>

@@ -46,6 +46,7 @@ const AdminDashboard = () => {
     }
   };
 
+  // 👇 THIS return must be INSIDE the component
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
