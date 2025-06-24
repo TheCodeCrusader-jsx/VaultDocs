@@ -1,36 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DocumentTable from '../components/DocumentTable';
 import FilterBar from '../components/FilterBar';
+// ❌ Removed UserTable import — not needed now
 
 const AdminDashboard = () => {
   const [documents, setDocuments] = useState([]);
-  const [filters, setFilters] = useState({
-    docType: '',
-    date: '',
-  });
+  const [documentFilters, setDocumentFilters] = useState({ username: '' }); // 🔧 use only username now
 
-  const fetchDocuments = async () => {
+  // ✅ Fetch all documents (no backend filtering)
+  const fetchDocuments = useCallback(async () => {
     try {
-      const query = new URLSearchParams(filters).toString();
-      const response = await fetch(`/api/documents?${query}`);
+      const response = await fetch(`/api/documents`);
       const data = await response.json();
       setDocuments(data);
     } catch (error) {
       console.error('Error fetching documents:', error);
     }
-  };
+  }, []);
 
+  // ✅ Fetch once when component mounts
   useEffect(() => {
     fetchDocuments();
-  }, [filters]);
+  }, [fetchDocuments]);
 
+  // ✅ Handle filter change from FilterBar
   const handleFilterChange = (name, value) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      [name]: value,
-    }));
+    setDocumentFilters((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ Handle verify/reject and refetch updated list
   const handleStatusChange = async (id, status) => {
     try {
       await fetch(`/api/documents/${id}`, {
@@ -40,13 +38,18 @@ const AdminDashboard = () => {
         },
         body: JSON.stringify({ status }),
       });
-      fetchDocuments();
+      fetchDocuments(); // refresh after status update
     } catch (error) {
       console.error('Error updating status:', error);
     }
   };
 
-  // 👇 THIS return must be INSIDE the component
+  // ✅ Frontend filter documents by username
+  const filteredDocuments = documents.filter((doc) =>
+    doc.name.toLowerCase().includes(documentFilters.username?.toLowerCase() || '')
+  );
+
+  // ✅ JSX
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
@@ -58,7 +61,11 @@ const AdminDashboard = () => {
           <FilterBar onFilterChange={handleFilterChange} />
         </div>
 
-        <DocumentTable documents={documents} onStatusChange={handleStatusChange} />
+        {/* ✅ Always show filtered documents now */}
+        <DocumentTable
+          documents={filteredDocuments}
+          onStatusChange={handleStatusChange}
+        />
       </div>
     </div>
   );

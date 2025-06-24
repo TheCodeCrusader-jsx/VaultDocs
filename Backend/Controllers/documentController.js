@@ -83,15 +83,10 @@ exports.uploadDocument = async (req, res) => {
 // ======================
 exports.getDocuments = async (req, res) => {
   try {
-    const { docType, date } = req.query;
-    console.log('📥 Fetching docs with:', { docType, date });
+    const { date } = req.query;
+    console.log('📥 Fetching docs with:', { date });
 
     const filter = {};
-
-    // Filter by docType if passed
-    if (docType && docType !== 'all') {
-      filter[`documents.${docType}`] = { $exists: true, $not: { $size: 0 } };
-    }
 
     // Filter by date if passed
     if (date) {
