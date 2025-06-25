@@ -16,10 +16,6 @@ const UploadForm = () => {
     bank: [],
     marksheet: [],
     pan: [],
-    license: [],
-    passport: [],
-    voterid: [],
-    other: [],
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,10 +26,6 @@ const UploadForm = () => {
     bank: 'Bank Details',
     marksheet: 'Marksheet',
     pan: 'PAN Card',
-    license: 'Driving License',
-    passport: 'Passport',
-    voterid: 'Voter ID',
-    other: 'Other Document',
   };
 
   // Maximum allowed file size in bytes (e.g., 5MB)
@@ -115,6 +107,18 @@ const UploadForm = () => {
   // Handles the form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // --- VALIDATION LOGIC ---
+    const requiredDocs = ['aadhar', 'pan', 'bank', 'marksheet'];
+    const missingDocs = requiredDocs.filter(docType => documents[docType].length === 0);
+
+    if (missingDocs.length > 0) {
+      const missingDocLabels = missingDocs.map(docType => docLabels[docType]).join(', ');
+      toast.error(`Please upload all required documents. Missing: ${missingDocLabels}.`);
+      return; // Stop submission
+    }
+    // --- END VALIDATION ---
+
     setIsSubmitting(true);
 
     const data = new FormData();
@@ -142,7 +146,7 @@ const UploadForm = () => {
 
     try {
       // Make the API call to upload documents
-      const response = await fetch('/api/documents/upload', {
+      const response = await fetch('http://localhost:5000/api/documents/upload', {
         method: 'POST',
         body: data,
       });

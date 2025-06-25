@@ -20,6 +20,18 @@ exports.uploadDocument = async (req, res) => {
       docTypes = [docTypes]; // Convert to array if single docType
     }
 
+    // --- BACKEND VALIDATION ---
+    const requiredDocs = ['aadhar', 'pan', 'bank', 'marksheet'];
+    const receivedDocTypes = [...new Set(docTypes)]; // Get unique doc types from request
+    const missingDocs = requiredDocs.filter(doc => !receivedDocTypes.includes(doc));
+
+    if (missingDocs.length > 0) {
+      return res.status(400).json({
+        message: `Missing required documents: ${missingDocs.join(', ')}`
+      });
+    }
+    // --- END VALIDATION ---
+
     if (docTypes.length !== req.files.length) {
       return res.status(400).json({ message: 'Mismatch between docTypes and number of files' });
     }
@@ -33,8 +45,7 @@ exports.uploadDocument = async (req, res) => {
     const cleanName = name.trim().toLowerCase().replace(/\s+/g, '_');
 
     const groupedDocs = {
-      aadhar: [], pan: [], passport: [], license: [],
-      resume: [], voterid: [], marksheet: [], bank: [], other: []
+      aadhar: [], pan: [], marksheet: [], bank: []
     };
 
     for (let i = 0; i < req.files.length; i++) {
@@ -42,12 +53,20 @@ exports.uploadDocument = async (req, res) => {
       const docType = docTypes[i].toLowerCase();
 
       // ✅ Construct a clear and unique filename
-      const ext = path.extname(file.originalname);
+      // Ensure we always use .pdf extension
+      const ext = '.pdf';
       const filename = `${docType}-${cleanName}${ext}`;
       const filePath = path.join(uploadsDir, filename);
 
+      // Create the uploads directory if it doesn't exist
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      // Save the file
       fs.writeFileSync(filePath, file.buffer);
       console.log(`✅ Saved: ${docType} → ${filename}`);
+      console.log(`✅ File path: ${filePath}`);
 
       if (groupedDocs.hasOwnProperty(docType)) {
         groupedDocs[docType].push(filename);
@@ -161,13 +180,57 @@ exports.downloadDocument = async (req, res) => {
       return res.status(404).json({ message: 'File not found in document records' });
     }
 
-    const filePath = path.join(__dirname, '../uploads', file);
-
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: 'File not found on server' });
+    // Get the full path to the uploads directory
+    const uploadsDir = path.join(__dirname, '../uploads');
+    
+    // Ensure the uploads directory exists
+    if (!fs.existsSync(uploadsDir)) {
+      console.error('❌ Uploads directory not found:', uploadsDir);
+      return res.status(500).json({ message: 'Uploads directory not found' });
     }
 
-    res.download(filePath);
+    // Clean the filename to match how it was saved
+    const cleanName = document.name.trim().toLowerCase().replace(/\s+/g, '_');
+    const ext = '.pdf'; // Always use .pdf extension
+    const savedFilename = `${type}-${cleanName}${ext}`;
+    
+    // Construct the full file path
+    const filePath = path.join(uploadsDir, savedFilename);
+    console.log('🔍 Checking file at:', filePath);
+
+    // Check if the file exists
+    if (!fs.existsSync(filePath)) {
+      console.error('❌ File not found:', filePath);
+      console.error('❌ Looking for:', savedFilename);
+      console.error('❌ Directory contents:', fs.readdirSync(uploadsDir));
+      console.error('❌ Document record:', document.documents[type]);
+      return res.status(404).json({ 
+        message: 'File not found on server',
+        details: {
+          lookingFor: savedFilename,
+          directoryContents: fs.readdirSync(uploadsDir)
+        }
+      });
+    }
+
+    // Get file stats
+    const stats = fs.statSync(filePath);
+    console.log('✅ File found:', { size: stats.size, modified: stats.mtime });
+
+    // Set appropriate headers
+    res.setHeader('Content-Length', stats.size);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${file}"`);
+
+    // Stream the file
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+
+    // Handle errors
+    fileStream.on('error', (err) => {
+      console.error('❌ Error streaming file:', err);
+      res.status(500).json({ message: 'Error streaming file' });
+    });
   } catch (error) {
     console.error('❌ Download error:', error);
     res.status(500).json({ message: 'Download failed', error: error.message });
